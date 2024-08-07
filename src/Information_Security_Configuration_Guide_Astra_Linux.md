@@ -66,3 +66,31 @@ apt -f install
 ![Upgrade](./images/apt_dist-upgrade.png)
 После выполнения обновления необходимо перезагрузить систему.
 
+## 2. Создание учетной записи
+
+Для создания учетной записи:
+```bash
+sudo useradd -m -s /bin/bash newuser
+```
+Добавление пароля для созданного пользователя:
+```bash
+sudo passwd newuser
+```
+Для просмотра списка групп учетной записи:
+```bash
+sudo groups newuser
+```
+Для оздание группы пользователей (newgroup - имя группы):
+```bash
+sudo groupadd newgroup
+```
+Для добавления учетной записи в группу учетных записей:
+```bash
+sudo usermod -aG newgroup newuser 
+```
+Для удаления учетной записи из группы:
+```bash
+sudo gpasswd -d newuser newgroup 
+```
+![User](./images/create_user.png)
+
