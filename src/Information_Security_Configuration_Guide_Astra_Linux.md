@@ -131,3 +131,129 @@ groupdel groupname
 ```
 ![User lock](./images/lock_user.png)
 
+## 3. Резервное копирование конфигурационных файлов ОС
+Перед выполнением работ по внедрению конфигурации Комплекса встроенных СрЗИ на базе операционной системы ASTRA LINUX 1.6 необходимо сделать копию всех конфигурационных файлов ОС, подлежащих изменению. Для автоматизации этого процесса можно воспользоваться скриптом [backup_configs.sh](./ProjectResources/backup_configs.sh) из папки [ProjectResources](./ProjectResources/) (перед запуском в терминале необходимо добавить права на исполнение chmod +x /имя/файла). Скрипт может запусстить пользователь с правами sudo.
+
+## 4. Настройка Системы контроля действий привилегированных пользователей PAM и парольной политики в ОС ASTRA LINUX 
+Библиотеки PAM или Pluggable Authentication Modules - это набор компонентов, предоставляющих программный интерфейс для авторизации пользователей в Linux. \
+Для настройки параметров PAM, определяющих требования к сложности нового пароля для всех учетных записей ОС, необходимо в файле настроек /etc/pam.d/common-password внести изменения так, чтобы соответствующий фрагмент в файле /etc/pam.d/common-password принял следующий вид:
+```
+password	requisite			pam_cracklib.so retry=3 minlen=8 difok=3 dcredit=-1 ucredit=-1 lcredit=-1
+```
+```
+password	[success=1 default=ignore]	pam_unix.so obscure use_authtok try_first_pass gost12_512
+```
+minlen – минимальное количество символов в пароле; \
+lcredit, dcredit, ucredit – не менее 1 символа заглавной латинской буквы, 1 цифры и 1 специального символа в задаваемом пароле.
+
+Для настройки парольной политики необходимо привести соответствующие строки в файле ```/etc/login.defs``` к следующему виду: \
+PASS_MAX_DAYS 180  # максимальный период жизни пароля в днях \
+PASS_MIN_DAYS 7    # минимальный период жизни пароля в днях \
+PASS_WARN_AGE 14   # период предупреждения о скором истечении срока жизни пароля в днях.
+
+Для определения парольной политики существующих в ОС, в консоли терминала объекта от имени учетной записи администратора выполнить следующую команду (повторить для всех локальных учетных записей существующих пользователей в ОС - меняем user_name): \
+chage –M 180 user_name \
+chage –W 14 user_name \
+chage –m 7 user_name
+
+## 5. Настройка прав доступа группы администраторов к логам ОС ASTRA LINUX
+Например, создадим 4 учетные записи администраторов acl_1, acl_2, acl_3, acl_4. Далее создадим группу acl_group и добавим в нее созданных ранее пользователей.
+![User_group](./images/add_users_group.png)
+Для добавления прав доступа группы администраторов **acl_group** к файлам регистрации событий (логам) ОС ASTRA LINUX 1.6 в консоли терминала от имени учетной записи администратора выполнить следующую команды:
+ <details>
+<summary>Команды для консоли</summary><pre>
+sudo setfacl -m "g:acl_group:rx" /var/log/afick/
+sudo setfacl -m "g:acl_group:rx" /var/log/apt/
+sudo setfacl -m "g:acl_group:rx" /var/log/audit/
+sudo setfacl -m "g:acl_group:rx" /var/log/cups/
+sudo setfacl -m "g:acl_group:rx" /var/log/exim4/
+sudo setfacl -m "g:acl_group:rx" /var/log/fly-dm/
+sudo setfacl -m "g:acl_group:rx" /var/log/hp/
+sudo setfacl -m "g:acl_group:rx" /var/log/installer/
+sudo setfacl -m "g:acl_group:rx" /var/log/ntpstats/
+sudo setfacl -m "g:acl_group:rx" /var/log/openvpn/
+sudo setfacl -m "g:acl_group:rx" /var/log/private/
+sudo setfacl -m "g:acl_group:rx" /var/log/samba/
+sudo setfacl -m "g:acl_group:r" /var/log/afick/afick.log
+sudo setfacl -m "g:acl_group:r" /var/log/afick/error.log
+sudo setfacl -m "g:acl_group:r" /var/log/apt/history.log
+sudo setfacl -m "g:acl_group:r" /var/log/audit/audit.log
+sudo setfacl -m "g:acl_group:r" /var/log/cups/access_log
+sudo setfacl -m "g:acl_group:r" /var/log/installer/syslog
+sudo setfacl -m "g:acl_group:r" /var/log/installer/status
+sudo setfacl -m "g:acl_group:r" /var/log/alternatives.log
+sudo setfacl -m "g:acl_group:r" /var/log/aptitude
+sudo setfacl -m "g:acl_group:r" /var/log/astra-history.log
+sudo setfacl -m "g:acl_group:r" /var/log/auth.log
+sudo setfacl -m "g:acl_group:r" /var/log/boot.log
+sudo setfacl -m "g:acl_group:r" /var/log/btmp
+sudo setfacl -m "g:acl_group:r" /var/log/daemon.log
+sudo setfacl -m "g:acl_group:r" /var/log/debug
+sudo setfacl -m "g:acl_group:r" /var/log/dpkg.log
+sudo setfacl -m "g:acl_group:r" /var/log/faillog
+sudo setfacl -m "g:acl_group:r" /var/log/fly-dm.log
+sudo setfacl -m "g:acl_group:r" /var/log/fontconfig.log
+sudo setfacl -m "g:acl_group:r" /var/log/kern.log
+sudo setfacl -m "g:acl_group:r" /var/log/lastlog
+sudo setfacl -m "g:acl_group:r" /var/log/messages
+sudo setfacl -m "g:acl_group:r" /var/log/syslog
+sudo setfacl -m "g:acl_group:r" /var/log/user.log
+sudo setfacl -m "g:acl_group:r" /var/log/wtmp
+</pre>
+<button onclick="copyToClipboard()">Скопировать команды</button>
+<script>
+function copyToClipboard() {
+  var text = document.querySelector('pre').innerText;
+  navigator.clipboard.writeText(text);
+  alert("Команды успешно скопированы в буфер обмена.");
+}
+</script>
+</details>
+
+## 6. Установка и настройка утилиты контроля целостности afick на ОС ASTRA LINUX 
+AFICK (Audit File Integrity Checker) - это инструмент для проверки целостности файлов в операционной системе Linux. Он предназначен для мониторинга изменений в файловой системе и обнаружения любых несанкционированных изменений в важных системных файлах.
+
+AFICK работает путем создания контрольных сумм (MD5 или SHA1) для всех файлов в определенных каталогах и последующего сравнения этих контрольных сумм с предыдущими значениями. Если обнаруживаются какие-либо различия, AFICK может отправить уведомление администратору системы или даже заблокировать систему до тех пор, пока проблема не будет решена.
+
+AFICK часто используется в системах, где важна безопасность и надежность, таких как серверы, банковские системы и другие критически важные приложения. Он помогает предотвратить несанкционированный доступ к файлам и защитить систему от вредоносного ПО, которое может изменить важные файлы.
+
+Необходимо изменить файл /etc/afick.conf (представле в папке [ProjectResources](./ProjectResources/afick.conf)).
+Для корректности настроек необходимо создать папку **/var/log/afick/history**.
+![Adding history directory](./images/afick_history.png) \
+Чтобы произвести первичную инициализацию утилиты **AFICK**, необходимо в терминале от имени пользователя с правами sudo выполнить команду ```afick -i```.
+![Initialization afick](./images/afick_initialization.png) 
+Запустить программу контроля целостности в режиме проверки от имени пользователя с правами sudo ```afick -k```.
+![Start afick](./images/afick_k.png)
+При запуске AFICK автоматически установит ежедневное задание для CRON. Файл с заданием находится в ```/etc/cron.daily/afick_cron```.
+Результат проверки будет отражен в файлах журнала ```/var/log/afick/archive/*``` и в терминале (в случае ручного запуска проверки).
+
+## 7.	Настройка блокирования сеанса доступа в информационную систему после установленного времени бездействия 
+Параметры автоматической блокировки графической сессии устанавливаются с помощью графического инструмента «Оформление Fly» (fly-admin-theme). Инструмент доступен из графического меню: "Пуск" -> "Панель управления" -> "Рабочий стол" -> "Оформление Fly" -> "Блокировка".
+![Desktop lock](./images/fly-admin-theme.png)
+
+## 8. Настройка ротации и хранения файлов журналов аудита на ОС ASTRA LINUX
+Настройка ротации и хранения логов необходима для обеспечения безопасности и надежности работы системы. Вот несколько причин, почему это важно:
+
+- Защита от переполнения диска: Журналы аудита могут занимать много места на диске, особенно при активном использовании системы. Если диск переполнится, система может перестать работать корректно. Ротация позволяет удалять старые записи и освобождать место на диске.
+- Удобство анализа: Когда журналов много, их анализ становится сложным. Ротация позволяет разделить журналы по датам или другим критериям, что упрощает поиск нужной информации.
+- Соответствие требованиям: Многие организации имеют строгие правила и политики, касающиеся хранения и защиты данных. Ротация и хранение файлов журналов аудита помогают соблюдать эти требования.
+- Предотвращение злоупотреблений: Если злоумышленник получит доступ к журналам аудита, он может использовать эту информацию для своих целей. Ротация и хранение файлов позволяют минимизировать риск утечки конфиденциальной информации.
+- Анализ инцидентов: В случае возникновения инцидента безопасности или других проблем, журналы аудита могут предоставить ценную информацию для расследования. Ротация и хранение позволяют сохранить эти данные для последующего анализа.
+
+Для настройки ротации в основной файл конфигурации утилиты **/etc/logrotate.conf** надо добавить строку:
+```bash
+include /etc/logrotate.d
+```
+В каталоге **/etc/logrotate.d** необходимо создать файл **logrotate.conf** с правилами ротации и хранения файлов журналов аудита. Пример файла ```/etc/logrotate.d/logrotate.conf``` можно посмотреть в папке [ProjectResources](./ProjectResources/logrotate.conf).
+Добавить задание по периодическому выполнению по расписанию процедуры ротации и хранения файлов журналов аудита в планировщик выполнения заданий cron можно командой от имени пользователя с правами sudo 
+```bash
+crontab -e
+```
+В открывшемся редакторе надо добавить строку в расписание:
+```bash
+* 0 * * * /usr/sbin/logrotate /etc/logrotate.d/logrotate.conf
+```
+Где 0 – точное время в часах выполнения задачи проверки целостности объектов.  
+![Cron](./images/crontab.png)
+
+## 9. Настройка отправки логов в систему сбора событий по протоколу syslog
