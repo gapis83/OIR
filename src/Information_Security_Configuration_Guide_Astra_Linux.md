@@ -158,10 +158,9 @@ chage –m 7 user_name
 
 ## 5. Настройка прав доступа группы администраторов к логам ОС ASTRA LINUX
 Например, создадим 4 учетные записи администраторов acl_1, acl_2, acl_3, acl_4. Далее создадим группу acl_group и добавим в нее созданных ранее пользователей. \
-![User_group](./images/add_users_group.png)
+![User_group](./images/add_users_group.png) \
 Для добавления прав доступа группы администраторов **acl_group** к файлам регистрации событий (логам) ОС ASTRA LINUX 1.6 в консоли терминала от имени учетной записи администратора выполнить следующую команды:
- <details>
-<summary>Команды для консоли</summary><pre>
+ ```bash
 sudo setfacl -m "g:acl_group:rx" /var/log/afick/
 sudo setfacl -m "g:acl_group:rx" /var/log/apt/
 sudo setfacl -m "g:acl_group:rx" /var/log/audit/
@@ -199,16 +198,7 @@ sudo setfacl -m "g:acl_group:r" /var/log/messages
 sudo setfacl -m "g:acl_group:r" /var/log/syslog
 sudo setfacl -m "g:acl_group:r" /var/log/user.log
 sudo setfacl -m "g:acl_group:r" /var/log/wtmp
-</pre>
-<button onclick="copyToClipboard()">Скопировать команды</button>
-<script>
-function copyToClipboard() {
-  var text = document.querySelector('pre').innerText;
-  navigator.clipboard.writeText(text);
-  alert("Команды успешно скопированы в буфер обмена.");
-}
-</script>
-</details>
+```
 
 ## 6. Установка и настройка утилиты контроля целостности afick на ОС ASTRA LINUX 
 AFICK (Audit File Integrity Checker) - это инструмент для проверки целостности файлов в операционной системе Linux. Он предназначен для мониторинга изменений в файловой системе и обнаружения любых несанкционированных изменений в важных системных файлах.
@@ -298,4 +288,39 @@ sudo systemctl restart sshd
 ```
 ![Restart SSH](./images/sshd.png)
 
-## 10. 	Настройка регистрации удачных и неудачных попыток входа в систему в ОС ASTRA LINUX 1.6
+## 11. 	Настройка регистрации удачных и неудачных попыток входа в систему в ОС ASTRA LINUX 1.6
+Для настройки регистрации удачных и неудачных попыток входа в систему необходимо выполнить установку пакетов auditd и audispd-plugins:
+```bash
+sudo apt install auditd audispd-plugins
+```
+Файл конфигурации [audit.conf](./ProjectResources/auditd.conf) должен быть сохранен так __/etc/audit/auditd.conf__.
+Строки пришлось закомментировать, как как текущая установленная версия не поддерживает данные параметры:
+```bash
+transport = TCP
+q_depth = 400
+overflow_action = SYSLOG
+max_restarts = 10
+plugin_dir = /etc/audit/plugins.d
+```
+Изменённый файл [audit.rules](./ProjectResources/audit.rules) надо созранить по адресу __/etc/audit/rules.d/audit.rules__.
+
+Произвести чтение правил аудита из файла утилитой auditctl, в консоли терминала объекта от имени учетной записи администратора выполнить следующую команду:
+```bash
+sudo auditctl -R /etc/audit/rules.d/audit.rules
+```
+
+## 12.	Останова неиспользуемых сервисов
+
+Для останова сервисов необходимо выполнить следующие действия:
+1. Вывести текущий список автоматически запускаемых при старте ОС сервисов, в консоли терминала объекта от имени учетной записи администратора выполнить следующую команду:
+```bash
+systemctl list-unit-files --state=enabled
+```
+![Enabled services](./images/enabled_services.png) \
+2. Согласно списку рекомендованных к отключению сервисов, выполнить деактивацию всех неиспользуемых для функционирования объекта ИТ-инфраструктуры сервисов, с помощью следующих команд (на примере сервиса ufw.service):
+```bash
+systemctl stop ufw.service
+systemctl disable ufw.service
+```
+
+## 13.	Установка и настройка локального файерволла и Selinux на ОС ASTRA LINUX 1.6
