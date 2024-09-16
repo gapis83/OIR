@@ -1,0 +1,13 @@
+$TTL 604800
+red.in.          IN      SOA     ns01.red.in. root.red.in. (
+                          2024081601  ; Serial
+                          600         ; Refresh
+                          3600        ; Retry
+                          1w          ; Expire
+                          360         ; Minimum TTL
+                          )
+
+                  IN      NS      ns01.red.in.
+
+ns01              IN      A       192.168.10.2
+

@@ -1,0 +1,9 @@
+$TTL    3600
+@  IN      SOA     red.in. root.red.in (
+                   2024081601      ; Serial
+                   3600            ; Refresh
+                   900             ; Retry
+                   3600000         ; Expire
+                   3600 )          ; Minimum
+@  IN      NS      localhost.
+50 IN      PTR     ns01
